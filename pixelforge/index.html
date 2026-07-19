@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="icon" type="image/png" href="https://notisrac.github.io/FileToCArray/Images/favicon.png" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片取模工具 - PixelForge</title>
+    <style>
+        :root {
+            --bg-color: #131722;
+            --card-bg: #1e2231;
+            --border-color: #2c3245;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --input-bg: #131722;
+            --radius: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* ================= 滚动条美化 ================= */
+        /* 针对 Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) var(--bg-color);
+        }
+
+        /* 针对 WebKit 内核浏览器 (Chrome, Edge, Safari) */
+        ::-webkit-scrollbar {
+            width: 12px;  /* 纵向滚动条宽度 */
+            height: 12px; /* 横向滚动条高度 */
+        }
+        
+        /* 滚动条轨道 */
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color); 
+            border-radius: var(--radius);
+        }
+        
+        /* 滚动条滑块 */
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: var(--radius);
+            /* 使用边框模拟内边距，让滑块看起来更精致 */
+            border: 3px solid var(--bg-color); 
+        }
+        
+        /* 悬停时的滑块颜色 */
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--text-muted);
+        }
+        
+        /* 滚动条交汇处的右下角 */
+        ::-webkit-scrollbar-corner {
+            background: var(--bg-color);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding-bottom: 3rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 1.1rem; }
+        .logo svg { width: 24px; height: 24px; fill: var(--primary); }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 { font-size: 1.2rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+
+        .form-group { margin-bottom: 1.2rem; }
+        .form-row { display: flex; gap: 1.5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+        .form-row > div { flex: 1; min-width: 150px; }
+        
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 500; }
+        
+        input, select, textarea {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+        textarea { height: 150px; resize: vertical; font-family: 'Courier New', Courier, monospace; }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius);
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background-color: rgba(59, 130, 246, 0.05); }
+        .upload-area svg { width: 48px; height: 48px; fill: var(--primary); margin-bottom: 1rem; }
+        .upload-area p { margin: 0; font-size: 1rem; font-weight: 500; }
+        .upload-area span { font-size: 0.8rem; color: var(--text-muted); }
+        
+        #previewImage {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: contain; background: var(--input-bg); display: none;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: var(--primary-hover); }
+
+        .instructions { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+        .instructions h3 { color: var(--text-main); margin-bottom: 0.5rem; font-size: 1rem; }
+        
+        #fileInput { display: none; }
+        
+        .canvas-container {
+            margin-top: 1rem; text-align: center; background: var(--input-bg);
+            border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem;
+            display: none; overflow: auto;
+        }
+        canvas { image-rendering: pixelated; max-width: 100%; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            图片取模工具 (Pro)
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>图片转C数组</h2>
+            
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept="image/png, image/jpeg, image/bmp, image/gif">
+                <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.36 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                <p>点击上传或拖拽图片</p>
+                <span>支持 PNG, JPEG, BMP, GIF 等格式</span>
+                <img id="previewImage" alt="预览">
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label>颜色格式</label>
+                    <select id="colorFormatEncode">
+                        <option value="rgb565">RGB565 (16位色)</option>
+                        <option value="argb8888">ARGB8888 (32位透明色)</option>
+                        <option value="rgb888">RGB888 (24位真彩色)</option>
+                        <option value="gray">灰度图 (8位色)</option>
+                        <option value="mono">二值图 (1位色)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>扫描方向</label>
+                    <select id="scanDirectionEncode">
+                        <option value="h_lr_tb">水平 (左→右, 上→下)</option>
+                        <option value="h_rl_tb">水平 (右→左, 上→下)</option>
+                        <option value="v_tb_lr">垂直 (上→下, 左→右)</option>
+                        <option value="v_bt_lr">垂直 (下→上, 左→右)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label>输出宽度</label>
+                    <input type="text" id="imgWidth" placeholder="自动">
+                </div>
+                <div>
+                    <label>输出高度</label>
+                    <input type="text" id="imgHeight" placeholder="自动">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label>字节顺序 (仅限多字节色)</label>
+                    <select id="endianEncode">
+                        <option value="little">小端 (Little-Endian)</option>
+                        <option value="big">大端 (Big-Endian)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>格式</label>
+                    <select id="outputFormat">
+                        <option value="hex">十六进制 (0x00)</option>
+                        <option value="dec">十进制 (0-255)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="btnEncode">生成 C 数组</button>
+            <textarea id="outputCArray" style="margin-top: 1rem; display: none;" readonly></textarea>
+        </div>
+
+        <div class="card">
+            <h2>C数组预览图片</h2>
+            <div class="form-group">
+                <label>输入C数组代码</label>
+                <textarea id="inputCArray" placeholder="在此粘贴 0x..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div><label>宽度</label><input type="number" id="decodeWidth" placeholder="64"></div>
+                <div><label>高度</label><input type="number" id="decodeHeight" placeholder="64"></div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label>颜色格式</label>
+                    <select id="colorFormatDecode">
+                        <option value="rgb565">RGB565 (16位色)</option>
+                        <option value="argb8888">ARGB8888 (32位透明色)</option>
+                        <option value="rgb888">RGB888 (24位真彩色)</option>
+                        <option value="gray">灰度图 (8位色)</option>
+                        <option value="mono">二值图 (1位色)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>扫描方向</label>
+                    <select id="scanDirectionDecode">
+                        <option value="h_lr_tb">水平 (左→右, 上→下)</option>
+                        <option value="h_rl_tb">水平 (右→左, 上→下)</option>
+                        <option value="v_tb_lr">垂直 (上→下, 左→右)</option>
+                        <option value="v_bt_lr">垂直 (下→上, 左→右)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>字节顺序</label>
+                    <select id="endianDecode">
+                        <option value="little">小端 (Little-Endian)</option>
+                        <option value="big">大端 (Big-Endian)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="btnDecode">渲染预览图片</button>
+            <div class="canvas-container" id="canvasContainer"><canvas id="decodeCanvas"></canvas></div>
+        </div>
+    </div>
+
+<script>
+    /* ================= 工具函数 ================= */
+    function swap16(val) { return ((val & 0xFF) << 8) | ((val >> 8) & 0xFF); }
+    function swap24(val) { return ((val & 0xFF) << 16) | (val & 0xFF00) | ((val >> 16) & 0xFF); }
+    function swap32(val) { 
+        return (((val & 0xFF) << 24) | ((val & 0xFF00) << 8) | ((val >> 8) & 0xFF00) | ((val >> 24) & 0xFF)) >>> 0; 
+    }
+
+    // 生成扫描坐标列表
+    function generateScanCoords(w, h, mode) {
+        let coords = [];
+        if (mode === 'h_lr_tb') {
+            for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) coords.push({x, y});
+        } else if (mode === 'h_rl_tb') {
+            for (let y = 0; y < h; y++) for (let x = w - 1; x >= 0; x--) coords.push({x, y});
+        } else if (mode === 'v_tb_lr') {
+            for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) coords.push({x, y});
+        } else if (mode === 'v_bt_lr') {
+            for (let x = 0; x < w; x++) for (let y = h - 1; y >= 0; y--) coords.push({x, y});
+        }
+        return coords;
+    }
+
+    /* ================= 图片处理逻辑 ================= */
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const previewImage = document.getElementById('previewImage');
+    let currentImageObj = null;
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault(); uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+    function handleFile(file) {
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImage.src = e.target.result;
+            previewImage.style.display = 'block';
+            currentImageObj = new Image();
+            currentImageObj.onload = () => {
+                document.getElementById('imgWidth').value = currentImageObj.width;
+                document.getElementById('imgHeight').value = currentImageObj.height;
+            };
+            currentImageObj.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    /* ================= 编码：图片转C数组 ================= */
+    document.getElementById('btnEncode').addEventListener('click', () => {
+        if (!currentImageObj) return alert('请先上传图片！');
+        
+        let targetW = parseInt(document.getElementById('imgWidth').value) || currentImageObj.width;
+        let targetH = parseInt(document.getElementById('imgHeight').value) || currentImageObj.height;
+        const format = document.getElementById('colorFormatEncode').value;
+        const scanDir = document.getElementById('scanDirectionEncode').value;
+        const endian = document.getElementById('endianEncode').value;
+        const outFormat = document.getElementById('outputFormat').value;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW; canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+        
+        // 除了ARGB透明模式，其他模式填充白底防止黑屏
+        if (format !== 'argb8888') {
+            ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, targetW, targetH);
+        }
+        ctx.drawImage(currentImageObj, 0, 0, targetW, targetH);
+        
+        const imgData = ctx.getImageData(0, 0, targetW, targetH).data;
+        const coords = generateScanCoords(targetW, targetH, scanDir);
+        let dataArray = [];
+
+        let cDataType = "unsigned char";
+        let hexPad = 2; 
+        // 如果是二值图，每 8 个像素对应 1 个字节 (Hex数据)；否则直接等于图片宽度 targetW
+        let itemsPerLine = (format === 'mono') ? Math.ceil(targetW / 8) : targetW;
+        
+        if (format === 'rgb565') { cDataType = "unsigned short"; hexPad = 4;} 
+        else if (format === 'rgb888') { cDataType = "unsigned int"; hexPad = 6;}
+        else if (format === 'argb8888') { cDataType = "unsigned int"; hexPad = 8;}
+
+        for (let i = 0; i < coords.length; i++) {
+            let x = coords[i].x, y = coords[i].y;
+            let pIdx = (y * targetW + x) * 4;
+            let r = imgData[pIdx], g = imgData[pIdx+1], b = imgData[pIdx+2], a = imgData[pIdx+3];
+
+            if (format === 'argb8888') {
+                let argb = (((a << 24) >>> 0) | (r << 16) | (g << 8) | b) >>> 0;
+                if (endian === 'big') argb = swap32(argb);
+                dataArray.push(argb);
+            }
+            else if (format === 'rgb888') {
+                let rgb = (r << 16) | (g << 8) | b;
+                if (endian === 'big') rgb = swap24(rgb);
+                dataArray.push(rgb);
+            } 
+            else if (format === 'rgb565') {
+                let rgb565 = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+                if (endian === 'big') rgb565 = swap16(rgb565);
+                dataArray.push(rgb565);
+            } 
+            else if (format === 'gray' || format === 'mono') {
+                let gray = Math.round(0.299*r + 0.587*g + 0.114*b);
+                if (format === 'gray') {
+                    dataArray.push(gray);
+                } else {
+                    if (i % 8 === 0) dataArray.push(0);
+                    if (gray < 128) dataArray[dataArray.length - 1] |= (1 << (7 - (i % 8)));
+                }
+            }
+        }
+
+        let hexStr = `// W: ${targetW}, H: ${targetH}, Format: ${format}, Scan: ${scanDir}, Endian: ${endian}\n`;
+        hexStr += `const ${cDataType} image_data[] = {\n    `;
+        for (let i = 0; i < dataArray.length; i++) {
+            let val = dataArray[i];
+            let strVal = outFormat === 'hex' ? '0x' + val.toString(16).padStart(hexPad, '0').toUpperCase() : val.toString();
+            hexStr += strVal;
+            if (i < dataArray.length - 1) hexStr += ', ';
+            if ((i + 1) % itemsPerLine === 0 && i !== dataArray.length - 1) hexStr += '\n    ';
+        }
+        hexStr += '\n};';
+        
+        const outBox = document.getElementById('outputCArray');
+        outBox.value = hexStr;
+        outBox.style.display = 'block';
+    });
+
+    /* ================= 解码：C数组转图片 ================= */
+    document.getElementById('btnDecode').addEventListener('click', () => {
+        const text = document.getElementById('inputCArray').value;
+        let w = parseInt(document.getElementById('decodeWidth').value);
+        let h = parseInt(document.getElementById('decodeHeight').value);
+        const format = document.getElementById('colorFormatDecode').value;
+        const scanDir = document.getElementById('scanDirectionDecode').value;
+        const endian = document.getElementById('endianDecode').value;
+
+        if (!text) return alert('请先粘贴 C 数组数据！');
+        
+        // ======== 新增：自动推导宽高逻辑 ========
+        if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) {
+            // 方案 1：尝试从我们自己生成的注释里提取 // W: 128, H: 64
+            const dimMatch = text.match(/W:\s*(\d+),\s*H:\s*(\d+)/i);
+            if (dimMatch) {
+                w = parseInt(dimMatch[1]);
+                h = parseInt(dimMatch[2]);
+            } else {
+                // 方案 2：尝试通过换行矩阵推导（数第一行的数据个数）
+                const lines = text.split('\n');
+                let firstLineCount = 0;
+                for (let line of lines) {
+                    const lineMatches = line.match(/(?:0[xX][0-9a-fA-F]+)|(?:\b\d+\b)/g);
+                    if (lineMatches && lineMatches.length > 0) {
+                        firstLineCount = lineMatches.length;
+                        break;
+                    }
+                }
+                
+                if (firstLineCount > 0) {
+                    const totalMatches = text.match(/(?:0[xX][0-9a-fA-F]+)|(?:\b\d+\b)/g);
+                    const totalCount = totalMatches ? totalMatches.length : 0;
+                    
+                    if (format === 'mono') {
+                        w = firstLineCount * 8; // 二值图 1 字节代表 8 像素
+                        h = Math.ceil(totalCount / firstLineCount);
+                    } else {
+                        w = firstLineCount;
+                        h = Math.floor(totalCount / w);
+                    }
+                }
+            }
+
+            // 如果推导成功，自动填入输入框给用户视觉反馈
+            if (w && h) {
+                document.getElementById('decodeWidth').value = w;
+                document.getElementById('decodeHeight').value = h;
+            } else {
+                return alert('无法自动识别图片尺寸，请手动输入宽度和高度！');
+            }
+        }
+
+        const regex = /(?:0[xX][0-9a-fA-F]+)|(?:\b\d+\b)/g;
+        const matches = text.match(regex);
+        if (!matches) return alert('无法解析数组！');
+        
+        // 将匹配到的字符串转为对应整数
+        const rawData = matches.map(m => parseInt(m, m.toLowerCase().includes('0x') ? 16 : 10));
+        
+        const canvas = document.getElementById('decodeCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = w; canvas.height = h;
+        const imgData = ctx.createImageData(w, h);
+        
+        const coords = generateScanCoords(w, h, scanDir);
+        let dataIdx = 0;
+
+        for (let i = 0; i < coords.length; i++) {
+            let x = coords[i].x, y = coords[i].y;
+            let pIdx = (y * w + x) * 4;
+            let r = 0, g = 0, b = 0, a = 255;
+
+            if (format === 'argb8888') {
+                let val = rawData[dataIdx++] || 0;
+                if (endian === 'big') val = swap32(val);
+                a = (val >>> 24) & 0xFF;
+                r = (val >> 16) & 0xFF;
+                g = (val >> 8) & 0xFF;
+                b = val & 0xFF;
+            }
+            else if (format === 'rgb888') {
+                let val = rawData[dataIdx++] || 0;
+                if (endian === 'big') val = swap24(val);
+                r = (val >> 16) & 0xFF;
+                g = (val >> 8) & 0xFF;
+                b = val & 0xFF;
+            } 
+            else if (format === 'rgb565') {
+                let val = rawData[dataIdx++] || 0;
+                if (endian === 'big') val = swap16(val);
+                r = (val & 0xF800) >> 8;
+                g = (val & 0x07E0) >> 3;
+                b = (val & 0x001F) << 3;
+            } 
+            else if (format === 'gray') {
+                r = g = b = (rawData[dataIdx++] || 0);
+            } 
+            else if (format === 'mono') {
+                let byte = rawData[Math.floor(i / 8)] || 0;
+                let bit = (byte >> (7 - (i % 8))) & 1;
+                r = g = b = bit ? 0 : 255; 
+                if ((i + 1) % 8 === 0) dataIdx++; 
+            }
+
+            imgData.data[pIdx] = r;
+            imgData.data[pIdx+1] = g;
+            imgData.data[pIdx+2] = b;
+            imgData.data[pIdx+3] = a;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        document.getElementById('canvasContainer').style.display = 'block';
+    });
+</script>
+</body>
+</html>
