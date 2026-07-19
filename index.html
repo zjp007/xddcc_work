@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的项目合集</title>
+    <style>
+        /* 基础页面样式 */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f9fafb;
+            color: #374151;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+        
+        /* 标题居中 */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            color: #111827;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #6b7280;
+        }
+
+        /* 项目列表排版 */
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px; /* 项目卡片之间的间距 */
+        }
+
+        /* 单个项目卡片样式 */
+        .project-card {
+            background-color: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-decoration: none; /* 隐藏超链接的下划线 */
+            transition: transform 0.2s, box-shadow 0.2s; /* 添加悬停动画 */
+            border: 1px solid #e5e7eb;
+        }
+
+        /* 鼠标悬停时的效果 */
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #f6821f; /* Cloudflare 橙色 */
+        }
+
+        .project-title {
+            margin: 0 0 8px 0;
+            color: #f6821f;
+            font-size: 1.25rem;
+        }
+
+        .project-desc {
+            margin: 0;
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>👋 欢迎来到我的主页</h1>
+        <p>这是托管在 Cloudflare Pages 上的项目导航中心</p>
+    </div>
+    
+    <div class="project-list">
+        
+        <!-- 你的第一个项目入口 -->
+        <a href="/pixelforge/" class="project-card">
+            <h2 class="project-title">🎨 PixelForge</h2>
+            <p class="project-desc">点击进入 PixelForge 项目页面</p>
+        </a>
+
+        <!-- 未来新增项目只需复制下面这段代码并取消注释，修改文字和链接即可：
+        <a href="/your_new_project_folder/" class="project-card">
+            <h2 class="project-title">🚀 新项目名称</h2>
+            <p class="project-desc">这里写一行简单的项目描述</p>
+        </a>
+        -->
+
+    </div>
+
+</body>
+</html>
